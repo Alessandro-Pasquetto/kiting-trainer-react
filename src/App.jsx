@@ -1,8 +1,8 @@
 import {useState, useRef} from 'react'
 
 import './App.css'
-import Arena from './Arena.jsx'
-import Panel from './Panel.jsx'
+import Arena from './Components/Arena/Arena.jsx'
+import Panel from './Components/Panel/Panel.jsx'
 
 function App() {
   const [attackRange, setAttackRange] = useState(400)
