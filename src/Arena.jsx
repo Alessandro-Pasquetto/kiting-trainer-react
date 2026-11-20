@@ -3,7 +3,7 @@ import {useState, useEffect, useRef, useImperativeHandle, forwardRef} from 'reac
 import './Arena.css'
 
 const Arena = forwardRef(function Arena(
-    {attackRange, attackSpeed, setCurrentAttackInterval, setAvgAttackInterval},
+    {attackRange, attackSpeed, moveSpeed, setCurrentAttackInterval, setAvgAttackInterval, setAttackClickError, setAvgAttackClickError, attackCount, setAttackCount},
     ref
   ){
 
@@ -20,8 +20,10 @@ const Arena = forwardRef(function Arena(
   const [isAttackReady, setIsAttackReady] = useState(true)
   const [lastAttackTime, setLastAttackTime] = useState(null)
   const [firstAttackTime, setFirstAttackTime] = useState(null)
-  const [attackCount, setAttackCount] = useState(0)
   const attackTimeout = useRef(null)
+  const [sumAttackError, setSumAttackError] = useState(0)
+
+  const animationRef = useRef(null)
 
   function handleRightClick(event) {
     event.preventDefault()
@@ -32,7 +34,7 @@ const Arena = forwardRef(function Arena(
     const x = ((event.clientX - rect.left) / rect.width) * 100
     const y = ((event.clientY - rect.top) / rect.height) * 100
 
-    setPlayerPosition({x, y})
+    movePlayer(x, y, rect)
 
     setMoveMarker({x, y})
     setMoveMarkerOpacity(1)
@@ -40,6 +42,62 @@ const Arena = forwardRef(function Arena(
       setMoveMarkerOpacity(0)
     }, 1)
   }
+
+  function movePlayer(targetX, targetY, arenaRect) {
+    if (animationRef.current !== null)
+      cancelAnimationFrame(animationRef.current)
+
+    const playerRect = playerRef.current.getBoundingClientRect()
+
+    const startX = playerRect.left + playerRect.width / 2 - arenaRect.left
+    const startY = playerRect.top + playerRect.height / 2 - arenaRect.top
+
+    const endX = targetX / 100 * arenaRect.width
+    const endY = targetY / 100 * arenaRect.height
+
+    const dx = endX - startX
+    const dy = endY - startY
+
+    const distance = Math.sqrt(dx * dx + dy * dy)
+
+    if (distance === 0) return
+
+    const duration = distance / moveSpeed * 1000
+    let startTime = null
+
+    function animate(timestamp) {
+      if (startTime === null) {
+        startTime = timestamp
+      }
+
+      const elapsed = timestamp - startTime
+      const progress = Math.min(elapsed / duration, 1)
+
+      const currentX = startX + dx * progress
+      const currentY = startY + dy * progress
+
+      setPlayerPosition({
+          x: currentX / arenaRect.width * 100,
+          y: currentY / arenaRect.height * 100
+      })
+
+      if (progress < 1) {
+          animationRef.current = requestAnimationFrame(animate)
+      } else {
+          animationRef.current = null
+      }
+    }
+
+    animationRef.current = requestAnimationFrame(animate)
+  }
+
+  useEffect(() => {
+    return () => {
+      if (animationRef.current !== null) {
+        cancelAnimationFrame(animationRef.current)
+      }
+    }
+  }, [])
 
   function handleLeftClick(event) {
     if (!showAttackRange) return
@@ -51,6 +109,15 @@ const Arena = forwardRef(function Arena(
     const x = ((event.clientX - rect.left) / rect.width) * 100
     const y = ((event.clientY - rect.top) / rect.height) * 100
 
+    const enemyBounds = enemyRef.current.getBoundingClientRect()
+    const enemyX = enemyBounds.left + enemyBounds.width / 2
+    const enemyY = enemyBounds.top + enemyBounds.height / 2
+
+    const dx = event.clientX - enemyX
+    const dy = event.clientY - enemyY
+
+    let clickError = -1
+
     setAttackMarker({x, y})
 
     setAttackMarkerOpacity(1)
@@ -59,10 +126,21 @@ const Arena = forwardRef(function Arena(
     }, 1)
     
     if (isEnemyInRange()) {
+      if (animationRef.current !== null) {
+        cancelAnimationFrame(animationRef.current)
+        animationRef.current = null
+      }
 
-      if(isAttackReady)
-        attack();
+      if(isAttackReady){
+        clickError = Math.sqrt(dx * dx + dy * dy)
+        let tmpSumAttackErrr = sumAttackError + clickError
+        setSumAttackError(tmpSumAttackErrr)
+        setAvgAttackClickError(tmpSumAttackErrr / (attackCount + 1))
+        attack()
+      }
     }
+
+    setAttackClickError(clickError)
   }
 
   function isEnemyInRange() {
@@ -113,8 +191,8 @@ const Arena = forwardRef(function Arena(
 
     setFirstAttackTime(null)
     setLastAttackTime(null)
-    setAttackCount(0)
     setIsAttackReady(true)
+    setSumAttackError(0)
   }
 
   useImperativeHandle(ref, () => ({
@@ -125,6 +203,13 @@ const Arena = forwardRef(function Arena(
     function handleKeyDown(event) {
       if (event.key.toLowerCase() === 'a') {
         setShowAttackRange(true)
+      }
+
+      if (event.key.toLowerCase() === 's') {
+        if (animationRef.current !== null) {
+          cancelAnimationFrame(animationRef.current)
+          animationRef.current = null
+        }
       }
     }
 
