@@ -1,0 +1,141 @@
+#arena {
+  position: relative;
+  width: 100%;
+  height: min(90vh, 1200px);
+  min-height: 500px;
+  overflow: hidden;
+  border: 1px solid #344155;
+  border-radius: 16px;
+  background-color: #192333;
+  background-image:
+	linear-gradient(#ffffff09 1px, transparent 1px),
+	linear-gradient(90deg, #ffffff09 1px, transparent 1px);
+  background-size: 32px 32px;
+  cursor: crosshair;
+  user-select: none;
+}
+
+#enemy {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: #ef5350;
+  border: 3px solid #ffc1bd;
+  pointer-events: none;
+}
+
+#player {
+  position: absolute;
+  left: 25%;
+  top: 66%;
+  width: 30px;
+  height: 42px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition: left 180ms linear, top 180ms linear;
+  filter: drop-shadow(0 3px 5px #0008);
+}
+
+.head {
+  position: absolute;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #ffd3a1;
+  border: 2px solid #fff0d9;
+  left: 6.5px;
+  top: 0;
+}
+
+.body {
+  position: absolute;
+  width: 18px;
+  height: 19px;
+  border-radius: 7px 7px 5px 5px;
+  background: #54b7ff;
+  border: 2px solid #c5eaff;
+  left: 6px;
+  top: 16px;
+}
+
+.leg {
+  position: absolute;
+  width: 6px;
+  height: 12px;
+  background: #d7e3f2;
+  border-radius: 4px;
+  top: 32px;
+}
+
+.leg.left {
+  left: 8px;
+  transform: rotate(10deg);
+}
+
+.leg.right {
+  right: 8px;
+  transform: rotate(-10deg);
+}
+
+#attackRangeCircle {
+  position: absolute;
+  width: var(--attack-range-size);
+  height: var(--attack-range-size);
+  border: 1px solid #a8e6ff;
+  border-radius: 50%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  display: none;
+}
+
+.marker {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 2px solid;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0;
+}
+
+#moveMarker {
+  border-color: #a8e6ff;
+}
+
+#attackMarker {
+  border-color: #ff4444;
+}
+
+.marker::before,
+.marker::after {
+  content: "";
+  position: absolute;
+  background: currentColor;
+}
+
+.marker::before {
+  width: 2px;
+  height: 26px;
+  left: 6px;
+  top: -6px;
+}
+
+.marker::after {
+  height: 2px;
+  width: 26px;
+  top: 6px;
+  left: -6px;
+}
+
+@media (max-width: 800px) {
+  #arena {
+	min-height: 400px;
+  }
+}
